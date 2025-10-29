@@ -127,8 +127,8 @@ function generatePdf(data, outputPdf, marcoFile) {
        // --- PASO 2: DIBUJAR EL TEXTO (ENCIMA DEL FONDO) ---
 
         // Definir área de texto con 1/3 de margen izquierdo
-        const padR=10, spacing=1;
-        const padL = CARD.width / 3.3;
+        const padR=10, spacing=4;
+        const padL = CARD.width / 2.8;
         const tx = x + padL;
         const tw = CARD.width - padL - padR;
 
@@ -159,11 +159,11 @@ function generatePdf(data, outputPdf, marcoFile) {
         let precioSize=28, precioHeight;
         for(let sz=28; sz>=12; sz--){
           doc.font('Arial-Bold').fontSize(sz);
-          precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center', lineGap: -3});
+          precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center', lineGap: -1});
           if(precioHeight <= sz*1.2*2){ precioSize=sz; break; }
         }
         doc.font('Arial-Bold').fontSize(precioSize);
-        precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center', lineGap: -3});
+        precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center', lineGap: -1});
 
         // 4. Calcular tamaño y ancho de los decimales
         const decimalSize = Math.max(8, precioSize - 4); // 4pt más pequeño que el precio
@@ -188,7 +188,7 @@ function generatePdf(data, outputPdf, marcoFile) {
 
         // Parte Entera
         doc.font('Arial-Bold').fontSize(precioSize).fillColor('#545454') // <-- Asegúrate que el color sea visible
-           .text(integerPart, precioStartX, precioY, { lineBreak: false, lineGap: -3 });
+           .text(integerPart, precioStartX, precioY, { lineBreak: false, lineGap: -1 });
         
         // Parte Decimal (mismo 'Y' para alinear por arriba)
         doc.font('Arial-Bold').fontSize(decimalSize).fillColor('#545454') // <-- Asegúrate que el color sea visible
