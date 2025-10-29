@@ -111,7 +111,7 @@ function generatePdf(data, outputPdf, marcoFile) {
         const tw = CARD.width - padL - padR;
 
         // Fijar color (ajusta 'black' o 'white' según tu fondo)
-        doc.fillColor('black');
+        doc.fillColor('#333333');
 
         // 1. Calcular tamaño de PRODUCTO (Arial regular, 20pt max)
         let productoSize=20, productoHeight;
@@ -156,7 +156,7 @@ function generatePdf(data, outputPdf, marcoFile) {
         const ty = y + (CARD.height - totalHeight) / 2;
 
         // 6. DIBUJAR PRODUCTO (Centrado en el área de texto)
-        doc.font('Arial').fontSize(productoSize).fillColor('black') // <-- Asegúrate que el color sea visible
+        doc.font('Arial').fontSize(productoSize).fillColor('#333333') // <-- Asegúrate que el color sea visible
            .text(item.product, tx, ty, {width:tw, align:'center'});
         
         // 7. DIBUJAR PRECIO (Centrado manual de las dos partes)
@@ -165,11 +165,11 @@ function generatePdf(data, outputPdf, marcoFile) {
         const precioStartX = tx + (tw - totalPrecioWidth) / 2; 
 
         // Parte Entera
-        doc.font('Arial-Bold').fontSize(precioSize).fillColor('black') // <-- Asegúrate que el color sea visible
+        doc.font('Arial-Bold').fontSize(precioSize).fillColor('#333333') // <-- Asegúrate que el color sea visible
            .text(integerPart, precioStartX, precioY, { lineBreak: false });
         
         // Parte Decimal (mismo 'Y' para alinear por arriba)
-        doc.font('Arial-Bold').fontSize(decimalSize).fillColor('black') // <-- Asegúrate que el color sea visible
+        doc.font('Arial-Bold').fontSize(decimalSize).fillColor('#333333') // <-- Asegúrate que el color sea visible
            .text(decimalPart, precioStartX + integerWidth, precioY, { lineBreak: false });
      });
       // líneas de recorte
