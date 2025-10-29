@@ -126,7 +126,7 @@ function generatePdf(data, outputPdf, marcoFile) {
        // --- PASO 2: DIBUJAR EL TEXTO (ENCIMA DEL FONDO) ---
 
         // Definir área de texto con 1/3 de margen izquierdo
-        const padR=10, spacing=4;
+        const padR=15, spacing=4;
         const padL = CARD.width / 3;
         const tx = x + padL;
         const tw = CARD.width - padL - padR;
@@ -136,7 +136,7 @@ function generatePdf(data, outputPdf, marcoFile) {
 
         // 1. Calcular tamaño de PRODUCTO (Arial regular, 20pt max)
         let productoSize=20, productoHeight;
-        for(let sz=20; sz>=12; sz--){
+        for(let sz=20; sz>=8; sz--){
           doc.font('Arial').fontSize(sz);
           productoHeight = doc.heightOfString(item.product,{width:tw,align:'center'});
           if(productoHeight <= sz*1.2*3){ productoSize=sz; break; }
