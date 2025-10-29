@@ -45,17 +45,17 @@ async function main() {
 
   // Detectar columnas dinámicamente
   const headers = Object.keys(rows[0]);
-  let nombreKey = headers.find(h=>/nombre/i.test(h));
-  let cargoKey  = headers.find(h=>/cargo/i.test(h));
-  if (!nombreKey || !cargoKey) {
-    if (headers.length===2) [nombreKey,cargoKey]=headers;
+  let productoKey = headers.find(h=>/producto/i.test(h));
+  let precioKey  = headers.find(h=>/precio/i.test(h));
+  if (!productoKey || !precioKey) {
+    if (headers.length===2) [productoKey,precioKey]=headers;
     else { console.error('Encabezados inválidos.'); process.exit(1); }
   }
 
   // Normalizar datos
   const data = rows.map(r=>({
-    name: String(r[nombreKey]).toUpperCase(),
-    position: String(r[cargoKey]).toUpperCase()
+    name: String(r[productoKey]).toUpperCase(),
+    position: String(r[precioKey]).toUpperCase()
   }));
 
   await generatePdf(data, outputPdf, marcoFile);
@@ -105,25 +105,39 @@ function generatePdf(data, outputPdf, marcoFile) {
         const padL=10, padR=10, spacing=4;
         const tx = x+8+80+padL, tw = CARD.width-(80+8+padL+padR);
         // nombre ajustable hasta 2 líneas
-        let ns=14, nh;
-        for(let sz=14; sz>=6; sz--){doc.font('Arial-Bold').fontSize(sz);
-          nh = doc.heightOfString(item.name,{width:tw,align:'center'});
-          if(nh<=sz*1.2*2){ns=sz;break;}}
-        doc.font('Arial-Bold').fontSize(ns);
-        nh = doc.heightOfString(item.name,{width:tw,align:'center'});
-        // cargo ajustable
-        let ps=10, ph;
-        for(let sz=10; sz>=6; sz--){doc.font('Arial').fontSize(sz);
-          ph=doc.heightOfString(item.position,{width:tw,align:'center'});
-          if(ph<=sz*1.2*2){ps=sz;break;}}
-        doc.font('Arial').fontSize(ps);
-        ph=doc.heightOfString(item.position,{width:tw,align:'center'});
-        // centrar vertical texto
-        const th=nh+spacing+ph, ty=y+(CARD.height-th)/2;
-        doc.font('Arial-Bold').fontSize(ns)
-           .text(item.name,tx,ty,{width:tw,align:'center'});
-        doc.font('Arial').fontSize(ps)
-           .text(item.position,tx,ty+nh+spacing,{width:tw,align:'center'});
+// --- LÓGICA DE TEXTO INVERTIDA ---
+
+        // 1. Calcular tamaño de PRECIO (Arial-Bold, 14pt max)
+        let precioSize=14, precioHeight;
+        for(let sz=14; sz>=6; sz--){
+          doc.font('Arial-Bold').fontSize(sz);
+          precioHeight = doc.heightOfString(item.price,{width:tw,align:'center'});
+          if(precioHeight <= sz*1.2*2){ precioSize=sz; break; }
+        }
+        doc.font('Arial-Bold').fontSize(precioSize); // Fijar tamaño
+        precioHeight = doc.heightOfString(item.price,{width:tw,align:'center'});
+
+        // 2. Calcular tamaño de PRODUCTO (Arial regular, 10pt max)
+        let productoSize=10, productoHeight;
+        for(let sz=10; sz>=6; sz--){
+          doc.font('Arial').fontSize(sz);
+          productoHeight = doc.heightOfString(item.product,{width:tw,align:'center'});
+          if(productoHeight <= sz*1.2*2){ productoSize=sz; break; }
+        }
+        doc.font('Arial').fontSize(productoSize); // Fijar tamaño
+        productoHeight = doc.heightOfString(item.product,{width:tw,align:'center'});
+
+        // 3. Centrar y Dibujar (Producto primero, luego Precio)
+        const totalHeight = productoHeight + spacing + precioHeight;
+        const ty = y + (CARD.height - totalHeight) / 2;
+
+        // Dibujar PRODUCTO (Arriba, regular, 10pt)
+        doc.font('Arial').fontSize(productoSize)
+           .text(item.product, tx, ty, {width:tw, align:'center'});
+        
+        // Dibujar PRECIO (Abajo, bold, 14pt)
+        doc.font('Arial-Bold').fontSize(precioSize)
+           .text(item.price, tx, ty + productoHeight +     spacing, {width:tw, align:'center'});
       });
       // líneas de recorte
       doc.save().lineWidth(0.5).strokeColor('#999').dash(5,{space:5});
