@@ -113,12 +113,12 @@ function generatePdf(data, outputPdf, marcoFile) {
         // Fijar color (ajusta 'black' o 'white' según tu fondo)
         doc.fillColor('black');
 
-        // 1. Calcular tamaño de PRODUCTO (Arial regular, 20pt max)
-        let productoSize=20, productoHeight;
-        for(let sz=20; sz>=10; sz--){
+        // 1. Calcular tamaño de PRODUCTO (Arial regular, 10pt max)
+        let productoSize=10, productoHeight;
+        for(let sz=10; sz>=6; sz--){
           doc.font('Arial').fontSize(sz);
           productoHeight = doc.heightOfString(item.product,{width:tw,align:'center'});
-          if(productoHeight <= sz*1.2*3){ productoSize=sz; break; }
+          if(productoHeight <= sz*1.2*2){ productoSize=sz; break; }
         }
         doc.font('Arial').fontSize(productoSize);
         productoHeight = doc.heightOfString(item.product,{width:tw,align:'center'});
@@ -133,9 +133,9 @@ function generatePdf(data, outputPdf, marcoFile) {
           decimalPart = parts[1].length > 2 ? parts[1].substring(0, 2) : parts[1]; // "45" (máx 2 decimales)
         }
 
-        // 3. Calcular tamaño de PRECIO (Solo parte entera, Arial-Bold, 28pt max)
-        let precioSize=28, precioHeight;
-        for(let sz=28; sz>=14; sz--){
+        // 3. Calcular tamaño de PRECIO (Solo parte entera, Arial-Bold, 14pt max)
+        let precioSize=14, precioHeight;
+        for(let sz=14; sz>=6; sz--){
           doc.font('Arial-Bold').fontSize(sz);
           precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center'});
           if(precioHeight <= sz*1.2*2){ precioSize=sz; break; }
@@ -144,7 +144,7 @@ function generatePdf(data, outputPdf, marcoFile) {
         precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center'});
         
         // 4. Calcular tamaño y ancho de los decimales
-        const decimalSize = Math.max(16, precioSize - 8); // 4pt más pequeño que el precio
+        const decimalSize = Math.max(8, precioSize - 4); // 4pt más pequeño que el precio
         doc.font('Arial-Bold').fontSize(precioSize);
         const integerWidth = doc.widthOfString(integerPart);
         doc.font('Arial-Bold').fontSize(decimalSize);
