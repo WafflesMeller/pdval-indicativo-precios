@@ -28,9 +28,9 @@ const CARD = {
 };
 
 async function main() {
-  const [,, inputFile, logoFile, outputPdf] = process.argv;
-  if (!inputFile || !logoFile || !outputPdf) {
-    console.error('Uso: node generador.js <input.xlsx> <logo.png> <output.pdf>');
+  const [,, inputFile, logoFile, outputPdf, marcoFile] = process.argv;
+  if (!inputFile || !logoFile || !outputPdf || !marcoFile) {
+    console.error('Uso: node generador.js <input.xlsx> <logo.png> <marco.png> <output.pdf>');
     process.exit(1);
   }
 
@@ -58,14 +58,14 @@ async function main() {
     position: String(r[cargoKey]).toUpperCase()
   }));
 
-  await generatePdf(data, logoFile, outputPdf);
+  await generatePdf(data, logoFile, outputPdf, marcoFile);
   console.log(`PDF generado: ${outputPdf}`);
 }
 
 /**
  * generatePdf: genera el PDF con tarjetas y líneas de recorte
  */
-function generatePdf(data, logoFile, outputPdf) {
+function generatePdf(data, logoFile, outputPdf, marcoFile) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size:'LETTER', margin:CARD.margin });
     // Registrar Arial
@@ -90,9 +90,18 @@ function generatePdf(data, logoFile, outputPdf) {
         const c = i%columns, r = Math.floor(i/columns);
         const x = CARD.margin+c*(CARD.width+CARD.gapX);
         const y = CARD.margin+r*(CARD.height+CARD.gapY);
-        // tarjeta
-        doc.save().lineWidth(2).strokeColor('#0737AA')
-           .rect(x,y,CARD.width,CARD.height).stroke().restore();
+        // tarjeta (imagen de marco)
+        try {
+          doc.image(marcoFile, x, y, {
+            width: CARD.width,
+            height: CARD.height
+          });
+        } catch (e) {
+          console.error(`No se pudo cargar la imagen del marco: ${marcoFile}`);
+          // Si la imagen falla, dibuja un marco rojo de error
+          doc.save().lineWidth(1).strokeColor('red')
+             .rect(x,y,CARD.width,CARD.height).stroke().restore();
+        }
         // logo centrado vertical
         try{
           const img = doc.openImage(logoPath);
