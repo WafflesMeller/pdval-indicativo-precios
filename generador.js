@@ -159,11 +159,11 @@ function generatePdf(data, outputPdf, marcoFile) {
         let precioSize=28, precioHeight;
         for(let sz=28; sz>=12; sz--){
           doc.font('Arial-Bold').fontSize(sz);
-          precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center', lineGap: -1});
+          precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center', lineGap: -3});
           if(precioHeight <= sz*1.2*2){ precioSize=sz; break; }
         }
         doc.font('Arial-Bold').fontSize(precioSize);
-        precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center', lineGap: -1});
+        precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center', lineGap: -3});
 
         // 4. Calcular tamaño y ancho de los decimales
         const decimalSize = Math.max(8, precioSize - 4); // 4pt más pequeño que el precio
@@ -188,7 +188,7 @@ function generatePdf(data, outputPdf, marcoFile) {
 
         // Parte Entera
         doc.font('Arial-Bold').fontSize(precioSize).fillColor('#545454') // <-- Asegúrate que el color sea visible
-           .text(integerPart, precioStartX, precioY, { lineBreak: false, lineGap: -1 });
+           .text(integerPart, precioStartX, precioY, { lineBreak: false, lineGap: -3 });
         
         // Parte Decimal (mismo 'Y' para alinear por arriba)
         doc.font('Arial-Bold').fontSize(decimalSize).fillColor('#545454') // <-- Asegúrate que el color sea visible
