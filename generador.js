@@ -24,7 +24,8 @@ const CARD = {
   height: 95,
   gapX: 20,
   gapY: 15,
-  margin: 15
+  margin: 15,
+  topPadding: 15
 };
 
 async function main() {
@@ -173,8 +174,8 @@ function generatePdf(data, outputPdf, marcoFile) {
         const totalPrecioWidth = integerWidth + decimalWidth;
 
         // 5. Centrar Verticalmente
-        const totalHeight = productoHeight + spacing + precioHeight;
-        const ty = y + (CARD.height - totalHeight) / 2;
+        // const totalHeight = productoHeight + spacing + precioHeight;
+        const ty = y + CARD.topPadding; // <-- LÍNEA MODIFICADA
 
         // 6. DIBUJAR PRODUCTO (Centrado en el área de texto)
         doc.font('Arial').fontSize(productoSize).fillColor('#545454') // <-- Asegúrate que el color sea visible
