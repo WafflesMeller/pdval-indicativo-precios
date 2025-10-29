@@ -85,27 +85,29 @@ function generatePdf(data, outputPdf, marcoFile) {
       if(p>0) doc.addPage();
       const pageItems = data.slice(p*perPage,p*perPage+perPage);
       // Dibujar tarjetas
-      pageItems.forEach((item,i)=>{
-        const c = i%columns, r = Math.floor(i/columns);
-        const x = CARD.margin+c*(CARD.width+CARD.gapX);
-        const y = CARD.margin+r*(CARD.height+CARD.gapY);
-        // tarjeta (imagen de marco)
-        try {
-          doc.image(marcoFile, x, y, {
-            width: CARD.width,
-            height: CARD.height
-          });
-        } catch (e) {
-          console.error(`No se pudo cargar la imagen del marco: ${marcoFile}`);
-          // Si la imagen falla, dibuja un marco rojo de error
-          doc.save().lineWidth(1).strokeColor('red')
-             .rect(x,y,CARD.width,CARD.height).stroke().restore();
-        }
-        // área texto
-        const padL=10, padR=10, spacing=4;
-        const tx = x+8+80+padL, tw = CARD.width-(80+8+padL+padR);
-        // nombre ajustable hasta 2 líneas
-// --- LÓGICA DE TEXTO INVERTIDA ---
+      pageItems.forEach((item,i)=>{
+        const c = i%columns, r = Math.floor(i/columns);
+        const x = CARD.margin+c*(CARD.width+CARD.gapX);
+        const y = CARD.margin+r*(CARD.height+CARD.gapY);
+
+        // --- PASO 1: DIBUJAR EL FONDO/MARCO ---
+        try {
+          doc.image(marcoFile, x, y, {
+            width: CARD.width,
+            height: CARD.height
+          });
+        } catch (e) {
+          console.error(`No se pudo cargar la imagen del marco: ${marcoFile}`);
+          doc.save().lineWidth(1).strokeColor('red')
+             .rect(x,y,CARD.width,CARD.height).stroke().restore();
+        }
+
+        // --- PASO 2: DIBUJAR EL TEXTO (ENCIMA DEL FONDO) ---
+
+        // Definir área de texto
+        const padL=10, padR=10, spacing=4;
+        const tx = x + padL;
+        const tw = CARD.width - (padL + padR);
 
         // 1. Calcular tamaño de PRECIO (Arial-Bold, 14pt max)
         let precioSize=14, precioHeight;
@@ -114,7 +116,7 @@ function generatePdf(data, outputPdf, marcoFile) {
           precioHeight = doc.heightOfString(item.price,{width:tw,align:'center'});
           if(precioHeight <= sz*1.2*2){ precioSize=sz; break; }
         }
-        doc.font('Arial-Bold').fontSize(precioSize); // Fijar tamaño
+        doc.font('Arial-Bold').fontSize(precioSize);
         precioHeight = doc.heightOfString(item.price,{width:tw,align:'center'});
 
         // 2. Calcular tamaño de PRODUCTO (Arial regular, 10pt max)
@@ -124,12 +126,16 @@ function generatePdf(data, outputPdf, marcoFile) {
           productoHeight = doc.heightOfString(item.product,{width:tw,align:'center'});
           if(productoHeight <= sz*1.2*2){ productoSize=sz; break; }
         }
-        doc.font('Arial').fontSize(productoSize); // Fijar tamaño
+        doc.font('Arial').fontSize(productoSize);
         productoHeight = doc.heightOfString(item.product,{width:tw,align:'center'});
 
         // 3. Centrar y Dibujar (Producto primero, luego Precio)
         const totalHeight = productoHeight + spacing + precioHeight;
         const ty = y + (CARD.height - totalHeight) / 2;
+        
+        // ¡¡AQUÍ ESTÁ LA MAGIA!! Fijamos el color ANTES de dibujar
+        // Cambia 'white' por 'black' si tu fondo es claro
+        doc.fillColor('white'); 
 
         // Dibujar PRODUCTO (Arriba, regular, 10pt)
         doc.font('Arial').fontSize(productoSize)
@@ -137,8 +143,8 @@ function generatePdf(data, outputPdf, marcoFile) {
         
         // Dibujar PRECIO (Abajo, bold, 14pt)
         doc.font('Arial-Bold').fontSize(precioSize)
-           .text(item.price, tx, ty + productoHeight +     spacing, {width:tw, align:'center'});
-      });
+           .text(item.price, tx, ty + productoHeight + spacing, {width:tw, align:'center'});
+     });
       // líneas de recorte
       doc.save().lineWidth(0.5).strokeColor('#999').dash(5,{space:5});
       // verticales
