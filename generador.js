@@ -127,7 +127,7 @@ function generatePdf(data, outputPdf, marcoFile) {
        // --- PASO 2: DIBUJAR EL TEXTO (ENCIMA DEL FONDO) ---
 
         // Definir área de texto con 1/3 de margen izquierdo
-        const padR=15, spacing=4;
+        const padR=10, spacing=2;
         const padL = CARD.width / 3;
         const tx = x + padL;
         const tw = CARD.width - padL - padR;
@@ -139,11 +139,11 @@ function generatePdf(data, outputPdf, marcoFile) {
         let productoSize=20, productoHeight;
         for(let sz=20; sz>=8; sz--){
           doc.font('Arial').fontSize(sz);
-          productoHeight = doc.heightOfString(item.product,{width:tw,align:'center'});
+          productoHeight = doc.heightOfString(item.product,{width:tw,align:'center', lineGap: -1});
           if(productoHeight <= sz*1.2*3){ productoSize=sz; break; }
         }
         doc.font('Arial').fontSize(productoSize);
-        productoHeight = doc.heightOfString(item.product,{width:tw,align:'center'});
+        productoHeight = doc.heightOfString(item.product,{width:tw,align:'center', lineGap: -1});
 
         // 2. Dividir el Precio en parte entera y decimal
         let fullPrice = item.price;
@@ -159,12 +159,12 @@ function generatePdf(data, outputPdf, marcoFile) {
         let precioSize=28, precioHeight;
         for(let sz=28; sz>=12; sz--){
           doc.font('Arial-Bold').fontSize(sz);
-          precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center'});
+          precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center', lineGap: -1});
           if(precioHeight <= sz*1.2*2){ precioSize=sz; break; }
         }
         doc.font('Arial-Bold').fontSize(precioSize);
-        precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center'});
-        
+        precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center', lineGap: -1});
+
         // 4. Calcular tamaño y ancho de los decimales
         const decimalSize = Math.max(8, precioSize - 4); // 4pt más pequeño que el precio
         doc.font('Arial-Bold').fontSize(precioSize);
@@ -179,7 +179,7 @@ function generatePdf(data, outputPdf, marcoFile) {
 
         // 6. DIBUJAR PRODUCTO (Centrado en el área de texto)
         doc.font('Arial').fontSize(productoSize).fillColor('#545454') // <-- Asegúrate que el color sea visible
-           .text(item.product, tx, ty, {width:tw, align:'center'});
+           .text(item.product, tx, ty, {width:tw, align:'center', lineGap: -1});
         
         // 7. DIBUJAR PRECIO (Centrado manual de las dos partes)
         const precioY = ty + productoHeight + spacing;
@@ -188,7 +188,7 @@ function generatePdf(data, outputPdf, marcoFile) {
 
         // Parte Entera
         doc.font('Arial-Bold').fontSize(precioSize).fillColor('#545454') // <-- Asegúrate que el color sea visible
-           .text(integerPart, precioStartX, precioY, { lineBreak: false });
+           .text(integerPart, precioStartX, precioY, { lineBreak: false, lineGap: -1 });
         
         // Parte Decimal (mismo 'Y' para alinear por arriba)
         doc.font('Arial-Bold').fontSize(decimalSize).fillColor('#545454') // <-- Asegúrate que el color sea visible
