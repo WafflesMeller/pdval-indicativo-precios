@@ -37,13 +37,13 @@ app.post('/webhook', async (req, res) => {
       // Solicitar el archivo Excel
       await axios.post(`${TELEGRAM_API}/sendMessage`, {
         chat_id: chatId,
-        text: '📂 Por favor, envía un archivo Excel (.xlsx) con dos columnas: "nombre" y "cargo".'
+        text: '📂 Por favor, envía un archivo Excel (.xlsx) con dos columnas: "descripción del producto" y "precio".'
       });
     } else if (data === 'HELP') {
       // Ayuda básica
       await axios.post(`${TELEGRAM_API}/sendMessage`, {
         chat_id: chatId,
-        text: '📖 *Ayuda*: Presiona "Generar precedencias" para comenzar.',
+        text: '📖 *Ayuda*: Presiona "Generar indicadores de precios" para comenzar.',
         parse_mode: 'Markdown'
       });
     }
@@ -101,11 +101,11 @@ app.post('/webhook', async (req, res) => {
     const chatId = update.message.chat.id;
     await axios.post(`${TELEGRAM_API}/sendMessage`, {
       chat_id: chatId,
-      text: '👋 Soy el Bot de Generador de Precedencias. Selecciona una opción:',
+      text: '👋 Soy el Bot de Generador de Indicadores de precios. Selecciona una opción:',
       reply_markup: {
         inline_keyboard: [
           [
-            { text: 'Generar precedencias', callback_data: 'GENERATE' },
+            { text: 'Generar indicadores', callback_data: 'GENERATE' },
             { text: 'Ayuda', callback_data: 'HELP' }
           ]
         ]
