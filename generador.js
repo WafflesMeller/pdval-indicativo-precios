@@ -127,7 +127,7 @@ function generatePdf(data, outputPdf, marcoFile) {
        // --- PASO 2: DIBUJAR EL TEXTO (ENCIMA DEL FONDO) ---
 
         // Definir área de texto con 1/3 de margen izquierdo
-        const padR=10, spacing=-2;
+        const padR=10, spacing=-3;
         const padL = CARD.width / 2.9;
         const tx = x + padL;
         const tw = CARD.width - padL - padR;
