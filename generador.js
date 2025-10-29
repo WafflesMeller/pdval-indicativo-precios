@@ -53,10 +53,31 @@ async function main() {
   }
 
   // Normalizar datos
-  const data = rows.map(r=>({
-    product: String(r[productoKey]).toUpperCase(),
-    price: 'BS ' + String(r[precioKey]).toUpperCase()
-  }));
+  const data = rows.map(r => {
+    // 1. Obtenemos el nombre original y lo pasamos a mayúsculas
+    let productName = String(r[productoKey]).toUpperCase();
+
+    // 2. Definimos las unidades que queremos limpiar
+    //    Puedes añadir más si lo necesitas (ej: 'ML', 'G', etc.)
+    const unitsToClean = ['GR', 'KG', 'LT', 'ML'];
+
+    // 3. Creamos la expresión regular.
+    //    Esto buscará: (un número) + (.00) + (una de las unidades)
+    //    Ej: (\d+)\.00(GR|KG|LT|ML)\b
+    const regex = new RegExp(`(\\d+)\\.00(${unitsToClean.join('|')})\\b`, 'g');
+
+    // 4. Aplicamos el reemplazo.
+    //    '$1' es el número (ej. "500")
+    //    '$2' es la unidad (ej. "GR")
+    //    Juntos se convierten en "500GR"
+    let cleanedName = productName.replace(regex, '$1$2');
+
+    // 5. Retornamos el objeto con el nombre limpio
+    return {
+      product: cleanedName,
+      price: 'BS ' + String(r[precioKey]).toUpperCase()
+    };
+  });
 
   await generatePdf(data, outputPdf, marcoFile);
   console.log(`PDF generado: ${outputPdf}`);
