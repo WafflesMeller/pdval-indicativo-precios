@@ -127,8 +127,8 @@ function generatePdf(data, outputPdf, marcoFile) {
        // --- PASO 2: DIBUJAR EL TEXTO (ENCIMA DEL FONDO) ---
 
         // Definir área de texto con 1/3 de margen izquierdo
-        const padR=10, spacing=0;
-        const padL = CARD.width / 2.8;
+        const padR=10, spacing=-2;
+        const padL = CARD.width / 2.9;
         const tx = x + padL;
         const tw = CARD.width - padL - padR;
 
@@ -157,7 +157,7 @@ function generatePdf(data, outputPdf, marcoFile) {
 
         // 3. Calcular tamaño de PRECIO (Solo parte entera, Arial-Bold, 28pt max)
         let precioSize=28, precioHeight;
-        for(let sz=28; sz>=10; sz--){
+        for(let sz=28; sz>=9; sz--){
           doc.font('Arial-Bold').fontSize(sz);
           precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center', lineGap: -1});
           if(precioHeight <= sz*1.2*2){ precioSize=sz; break; }
