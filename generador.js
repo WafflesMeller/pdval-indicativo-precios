@@ -54,8 +54,8 @@ async function main() {
 
   // Normalizar datos
   const data = rows.map(r=>({
-    name: String(r[productoKey]).toUpperCase(),
-    position: String(r[precioKey]).toUpperCase()
+    product: String(r[productoKey]).toUpperCase(),
+    price: String(r[precioKey]).toUpperCase()
   }));
 
   await generatePdf(data, outputPdf, marcoFile);
