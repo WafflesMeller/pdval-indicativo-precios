@@ -69,12 +69,11 @@ app.post('/webhook', async (req, res) => {
       fs.writeFileSync(inputPath, excelRes.data);
 
       // Preparar rutas
-      const logoPath = path.join(__dirname, 'logo.png');
       const marcoPath = path.join(__dirname, 'marco.png');
       const outputPdf = path.join(__dirname, 'precedencias.pdf');
 
       // Ejecutar el script generador
-      exec(`node generador.js "${inputPath}" "${logoPath}" "${marcoPath}" "${outputPdf}"`, async (error, stdout, stderr) => {
+      exec(`node generador.js "${inputPath}" "${marcoPath}" "${outputPdf}"`, async (error, stdout, stderr) => {
         if (error) {
           console.error('Error generando PDF:', stderr);
           return axios.post(`${TELEGRAM_API}/sendMessage`, { chat_id: chatId, text: '❌ Error al generar las precedencias.' });

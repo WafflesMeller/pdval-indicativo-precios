@@ -28,9 +28,9 @@ const CARD = {
 };
 
 async function main() {
-  const [,, inputFile, logoFile, marcoFile, outputPdf] = process.argv;
-  if (!inputFile || !logoFile || !marcoFile || !outputPdf) {
-    console.error('Uso: node generador.js <input.xlsx> <logo.png> <marco.png> <output.pdf>');
+  const [,, inputFile, marcoFile, outputPdf] = process.argv;
+  if (!inputFile || !marcoFile || !outputPdf) {
+    console.error('Uso: node generador.js <input.xlsx> <marco.png> <output.pdf>');
     process.exit(1);
   }
 
@@ -58,14 +58,14 @@ async function main() {
     position: String(r[cargoKey]).toUpperCase()
   }));
 
-  await generatePdf(data, logoFile, outputPdf, marcoFile);
+  await generatePdf(data, outputPdf, marcoFile);
   console.log(`PDF generado: ${outputPdf}`);
 }
 
 /**
  * generatePdf: genera el PDF con tarjetas y líneas de recorte
  */
-function generatePdf(data, logoFile, outputPdf, marcoFile) {
+function generatePdf(data, outputPdf, marcoFile) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size:'LETTER', margin:CARD.margin });
     // Registrar Arial
@@ -79,7 +79,6 @@ function generatePdf(data, logoFile, outputPdf, marcoFile) {
     const columns = Math.floor((pageW - 2*CARD.margin + CARD.gapX)/(CARD.width+CARD.gapX));
     const rowsCount = Math.floor((pageH-2*CARD.margin+CARD.gapY)/(CARD.height+CARD.gapY));
     const perPage = columns*rowsCount;
-    const logoPath = path.resolve(__dirname,logoFile);
 
     // Páginas
     for(let p=0; p*perPage<data.length; p++){
@@ -102,12 +101,6 @@ function generatePdf(data, logoFile, outputPdf, marcoFile) {
           doc.save().lineWidth(1).strokeColor('red')
              .rect(x,y,CARD.width,CARD.height).stroke().restore();
         }
-        // logo centrado vertical
-        try{
-          const img = doc.openImage(logoPath);
-          const iw=80, ih=img.height/img.width*iw;
-          doc.image(logoPath, x+8, y+(CARD.height-ih)/2, {width:iw});
-        }catch{}
         // área texto
         const padL=10, padR=10, spacing=4;
         const tx = x+8+80+padL, tw = CARD.width-(80+8+padL+padR);
