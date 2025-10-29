@@ -25,7 +25,7 @@ const CARD = {
   gapX: 20,
   gapY: 15,
   margin: 15,
-  topPadding: 10
+  topPadding: 15
 };
 
 async function main() {
