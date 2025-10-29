@@ -137,7 +137,7 @@ function generatePdf(data, outputPdf, marcoFile) {
 
         // 1. Calcular tamaño de PRODUCTO (Arial regular, 20pt max)
         let productoSize=20, productoHeight;
-        for(let sz=20; sz>=10; sz--){
+        for(let sz=20; sz>=9; sz--){
           doc.font('Arial').fontSize(sz);
           productoHeight = doc.heightOfString(item.product,{width:tw,align:'center', lineGap: -1});
           if(productoHeight <= sz*1.2*3){ productoSize=sz; break; }
