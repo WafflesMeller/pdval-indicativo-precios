@@ -69,8 +69,8 @@ function generatePdf(data, outputPdf, marcoFile) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size:'LETTER', margin:CARD.margin });
     // Registrar Arial
-    doc.registerFont('Arial', path.join(__dirname,'Arial.ttf'));
-    doc.registerFont('Arial-Bold', path.join(__dirname,'Arial-Bold.ttf'));
+    doc.registerFont('Arial', path.join(__dirname,'Altone Trial-Bold.ttf'));
+    doc.registerFont('Arial-Bold', path.join(__dirname,'Altone Trial-Bold.ttf'));
 
     const stream = fs.createWriteStream(outputPdf);
     doc.pipe(stream);
