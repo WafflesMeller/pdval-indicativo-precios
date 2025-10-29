@@ -55,7 +55,7 @@ async function main() {
   // Normalizar datos
   const data = rows.map(r=>({
     product: String(r[productoKey]).toUpperCase(),
-    price: String(r[precioKey]).toUpperCase()
+    price: 'BS ' + String(r[precioKey]).toUpperCase()
   }));
 
   await generatePdf(data, outputPdf, marcoFile);
@@ -102,48 +102,75 @@ function generatePdf(data, outputPdf, marcoFile) {
              .rect(x,y,CARD.width,CARD.height).stroke().restore();
         }
 
-        // --- PASO 2: DIBUJAR EL TEXTO (ENCIMA DEL FONDO) ---
+       // --- PASO 2: DIBUJAR EL TEXTO (ENCIMA DEL FONDO) ---
 
-        // Definir área de texto
-        const padL=10, padR=10, spacing=4;
+        // Definir área de texto con 1/3 de margen izquierdo
+        const padR=10, spacing=4;
+        const padL = CARD.width / 3;
         const tx = x + padL;
-        const tw = CARD.width - (padL + padR);
+        const tw = CARD.width - padL - padR;
 
-        // 1. Calcular tamaño de PRECIO (Arial-Bold, 14pt max)
-        let precioSize=14, precioHeight;
-        for(let sz=14; sz>=6; sz--){
-          doc.font('Arial-Bold').fontSize(sz);
-          precioHeight = doc.heightOfString(item.price,{width:tw,align:'center'});
-          if(precioHeight <= sz*1.2*2){ precioSize=sz; break; }
-        }
-        doc.font('Arial-Bold').fontSize(precioSize);
-        precioHeight = doc.heightOfString(item.price,{width:tw,align:'center'});
+        // Fijar color (ajusta 'black' o 'white' según tu fondo)
+        doc.fillColor('black');
 
-        // 2. Calcular tamaño de PRODUCTO (Arial regular, 10pt max)
+        // 1. Calcular tamaño de PRODUCTO (Arial regular, 10pt max)
         let productoSize=10, productoHeight;
         for(let sz=10; sz>=6; sz--){
-          doc.font('Arial').fontSize(sz);
+          doc.font('Arial').fontSize(sz);
           productoHeight = doc.heightOfString(item.product,{width:tw,align:'center'});
           if(productoHeight <= sz*1.2*2){ productoSize=sz; break; }
-        }
+        }
         doc.font('Arial').fontSize(productoSize);
         productoHeight = doc.heightOfString(item.product,{width:tw,align:'center'});
 
-        // 3. Centrar y Dibujar (Producto primero, luego Precio)
-        const totalHeight = productoHeight + spacing + precioHeight;
-        const ty = y + (CARD.height - totalHeight) / 2;
-        
-        // ¡¡AQUÍ ESTÁ LA MAGIA!! Fijamos el color ANTES de dibujar
-        // Cambia 'white' por 'black' si tu fondo es claro
-        doc.fillColor('black'); 
+        // 2. Dividir el Precio en parte entera y decimal
+        let fullPrice = item.price;
+        let integerPart = fullPrice;
+        let decimalPart = '';
+        if (fullPrice.includes('.')) {
+          const parts = fullPrice.split('.');
+          integerPart = parts[0] + '.'; // "BS 123."
+          decimalPart = parts[1].length > 2 ? parts[1].substring(0, 2) : parts[1]; // "45" (máx 2 decimales)
+        }
 
-        // Dibujar PRODUCTO (Arriba, regular, 10pt)
-        doc.font('Arial').fontSize(productoSize)
+        // 3. Calcular tamaño de PRECIO (Solo parte entera, Arial-Bold, 14pt max)
+        let precioSize=14, precioHeight;
+        for(let sz=14; sz>=6; sz--){
+          doc.font('Arial-Bold').fontSize(sz);
+          precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center'});
+          if(precioHeight <= sz*1.2*2){ precioSize=sz; break; }
+        }
+        doc.font('Arial-Bold').fontSize(precioSize);
+        precioHeight = doc.heightOfString(integerPart,{width:tw,align:'center'});
+        
+        // 4. Calcular tamaño y ancho de los decimales
+        const decimalSize = Math.max(8, precioSize - 4); // 4pt más pequeño que el precio
+        doc.font('Arial-Bold').fontSize(precioSize);
+        const integerWidth = doc.widthOfString(integerPart);
+        doc.font('Arial-Bold').fontSize(decimalSize);
+        const decimalWidth = doc.widthOfString(decimalPart);
+        const totalPrecioWidth = integerWidth + decimalWidth;
+
+        // 5. Centrar Verticalmente
+        const totalHeight = productoHeight + spacing + precioHeight;
+        const ty = y + (CARD.height - totalHeight) / 2;
+
+        // 6. DIBUJAR PRODUCTO (Centrado en el área de texto)
+        doc.font('Arial').fontSize(productoSize).fillColor('black') // <-- Asegúrate que el color sea visible
            .text(item.product, tx, ty, {width:tw, align:'center'});
         
-        // Dibujar PRECIO (Abajo, bold, 14pt)
-        doc.font('Arial-Bold').fontSize(precioSize)
-           .text(item.price, tx, ty + productoHeight + spacing, {width:tw, align:'center'});
+        // 7. DIBUJAR PRECIO (Centrado manual de las dos partes)
+        const precioY = ty + productoHeight + spacing;
+        // Calcular el 'X' inicial para centrar ambas partes juntas
+        const precioStartX = tx + (tw - totalPrecioWidth) / 2; 
+
+        // Parte Entera
+        doc.font('Arial-Bold').fontSize(precioSize).fillColor('black') // <-- Asegúrate que el color sea visible
+           .text(integerPart, precioStartX, precioY, { lineBreak: false });
+        
+        // Parte Decimal (mismo 'Y' para alinear por arriba)
+        doc.font('Arial-Bold').fontSize(decimalSize).fillColor('black') // <-- Asegúrate que el color sea visible
+           .text(decimalPart, precioStartX + integerWidth, precioY, { lineBreak: false });
      });
       // líneas de recorte
       doc.save().lineWidth(0.5).strokeColor('#999').dash(5,{space:5});
