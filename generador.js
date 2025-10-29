@@ -28,8 +28,8 @@ const CARD = {
 };
 
 async function main() {
-  const [,, inputFile, logoFile, outputPdf, marcoFile] = process.argv;
-  if (!inputFile || !logoFile || !outputPdf || !marcoFile) {
+  const [,, inputFile, logoFile, marcoFile, outputPdf] = process.argv;
+  if (!inputFile || !logoFile || !marcoFile || !outputPdf) {
     console.error('Uso: node generador.js <input.xlsx> <logo.png> <marco.png> <output.pdf>');
     process.exit(1);
   }
