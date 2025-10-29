@@ -135,7 +135,7 @@ function generatePdf(data, outputPdf, marcoFile) {
         
         // ¡¡AQUÍ ESTÁ LA MAGIA!! Fijamos el color ANTES de dibujar
         // Cambia 'white' por 'black' si tu fondo es claro
-        doc.fillColor('white'); 
+        doc.fillColor('black'); 
 
         // Dibujar PRODUCTO (Arriba, regular, 10pt)
         doc.font('Arial').fontSize(productoSize)
