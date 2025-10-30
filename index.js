@@ -70,7 +70,11 @@ app.post('/webhook', async (req, res) => {
 
       // Preparar rutas
       const marcoPath = path.join(__dirname, 'marco.png');
-      const outputPdf = path.join(__dirname, 'precedencias.pdf');
+      // Nombre del PDF con fecha y hora: indicador-precios-YYYY-MM-DD_HH-mm-ss.pdf
+      const pad = n => String(n).padStart(2, '0');
+      const now = new Date();
+      const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+      const outputPdf = path.join(__dirname, `indicador-precios-${ts}.pdf`);
 
       // Ejecutar el script generador
       exec(`node generador.js "${inputPath}" "${marcoPath}" "${outputPdf}"`, async (error, stdout, stderr) => {
