@@ -214,6 +214,7 @@ function generatePdf(data, outputPdf, marcoFile) {
             break;
           }
         }
+        
         doc.font("Arial-Bold").fontSize(precioSize);
         precioHeight = doc.heightOfString(integerPart, {
           width: tw,
