@@ -54,31 +54,45 @@ async function main() {
   }
 
   // Normalizar datos
-  const data = rows.map(r => {
-    // 1. Obtenemos el nombre original y lo pasamos a mayúsculas
-    let productName = String(r[productoKey]).toUpperCase();
+const data = rows.map((r) => {
+  const name = String(r[productoKey] || '').toUpperCase();
 
-    // 2. Definimos las unidades que queremos limpiar
-    //    Puedes añadir más si lo necesitas (ej: 'ML', 'G', etc.)
-    const unitsToClean = ['GR', 'KG', 'LT', 'ML'];
+  // 🔹 Función para limpiar y formatear el precio
+  function formatPrice(value) {
+    if (value == null) return '';
 
-    // 3. Creamos la expresión regular.
-    //    Esto buscará: (un número) + (.00) + (una de las unidades)
-    //    Ej: (\d+)\.00(GR|KG|LT|ML)\b
-    const regex = new RegExp(`(\\d+)\\.00(${unitsToClean.join('|')})\\b`, 'g');
+    let str = String(value).trim();
 
-    // 4. Aplicamos el reemplazo.
-    //    '$1' es el número (ej. "500")
-    //    '$2' es la unidad (ej. "GR")
-    //    Juntos se convierten en "500GR"
-    let cleanedName = productName.replace(regex, '$1$2');
+    // 1️⃣ Eliminar cualquier símbolo de moneda o espacio extra
+    str = str.replace(/[^\d,.\-]/g, '');
 
-    // 5. Retornamos el objeto con el nombre limpio
-    return {
-      product: cleanedName,
-      price: 'BS ' + String(r[precioKey]).toUpperCase()
-    };
-  });
+    // 2️⃣ Detectar el formato y normalizar:
+    // - Eliminar puntos que parecen separadores de miles
+    // - Convertir coma en punto decimal
+    //   Ej: "1.000,50" -> "1000.50", "1,000.50" -> "1000.50"
+    str = str.replace(/\.(?=\d{3}(?:[.,]|$))/g, ''); // borra puntos de miles
+    str = str.replace(',', '.'); // cambia coma a punto decimal
+
+    const num = parseFloat(str);
+    if (isNaN(num)) return '';
+
+    // 3️⃣ Formatear con separador de miles "." y decimales ","
+    const formatted = num.toLocaleString('es-ES', {
+      minimumFractionDigits: 2, // siempre 2 decimales
+      maximumFractionDigits: 2,
+    });
+
+    return formatted;
+  }
+
+  // 🔹 Aplicar limpieza del precio
+  const cleanedPrice = formatPrice(r[precioKey]);
+
+  return {
+    product: name,
+    price: `BS ${cleanedPrice}`,
+  };
+});
 
   await generatePdf(data, outputPdf, marcoFile);
   console.log(`PDF generado: ${outputPdf}`);
