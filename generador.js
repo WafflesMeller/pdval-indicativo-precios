@@ -128,7 +128,7 @@ async function main() {
 
     return {
       product: cleanedName,
-      price: `BS ${cleanedPrice}`,
+      price: `BS ${cleanedPrice}`, // Ej: "BS 1.000,50"
     };
   });
 
@@ -223,25 +223,28 @@ function generatePdf(data, outputPdf, marcoFile) {
         });
 
         // 2. Dividir el Precio en parte entera y decimal
+        //    (item.price ahora es "BS 1.000,50")
         let fullPrice = item.price;
         let integerPart = fullPrice;
         let decimalPart = "";
-        
-        // NOTA: Esta lógica asume un punto como separador decimal para el split,
-        // pero formatPrice() usa comas (formato es-ES).
-        // Se mantiene la lógica original del split por si acaso.
-        if (fullPrice.includes(".")) {
-          const parts = fullPrice.split(".");
-          integerPart = parts[0] + "."; // "BS 123."
-          decimalPart =
-            parts[1].length > 2 ? parts[1].substring(0, 2) : parts[1]; // "45" (máx 2 decimales)
-        } // 3. Calcular tamaño de PRECIO (Solo parte entera, Arial-Bold, 28pt max)
 
+        // --- ¡CAMBIOS AQUÍ! ---
+        // Buscamos la coma (,) en lugar del punto (.)
+        if (fullPrice.includes(",")) {
+          const parts = fullPrice.split(","); // Dividir por coma
+          integerPart = parts[0] + ","; // "BS 1.000,"
+          decimalPart =
+            parts[1].length > 2 ? parts[1].substring(0, 2) : parts[1]; // "50"
+        }
+        // --- FIN DE CAMBIOS ---
+
+        // 3. Calcular tamaño de PRECIO (Solo parte entera, Arial-Bold, 28pt max)
         let precioSize = 28,
           precioHeight;
         for (let sz = 28; sz >= 7; sz--) {
           doc.font("Arial-Bold").fontSize(sz);
           precioHeight = doc.heightOfString(integerPart, {
+            // integerPart ahora es "BS 1.000,"
             width: tw,
             align: "center",
             lineGap: -1,
@@ -251,7 +254,7 @@ function generatePdf(data, outputPdf, marcoFile) {
             break;
           }
         }
-        
+
         doc.font("Arial-Bold").fontSize(precioSize);
         precioHeight = doc.heightOfString(integerPart, {
           width: tw,
@@ -264,7 +267,7 @@ function generatePdf(data, outputPdf, marcoFile) {
         doc.font("Arial-Bold").fontSize(precioSize);
         const integerWidth = doc.widthOfString(integerPart);
         doc.font("Arial-Bold").fontSize(decimalSize);
-        const decimalWidth = doc.widthOfString(decimalPart);
+        const decimalWidth = doc.widthOfString(decimalPart); // decimalPart ahora es "50"
         const totalPrecioWidth = integerWidth + decimalWidth; // 5. Centrar Verticalmente
 
         const totalHeight = productoHeight + spacing + precioHeight;
@@ -292,6 +295,7 @@ function generatePdf(data, outputPdf, marcoFile) {
           .fontSize(precioSize)
           .fillColor("#545454") // <-- Asegúrate que el color sea visible
           .text(integerPart, precioStartX, precioY, {
+            // Dibuja "BS 1.000,"
             lineBreak: false,
             lineGap: -1,
           });
@@ -302,6 +306,7 @@ function generatePdf(data, outputPdf, marcoFile) {
           .fontSize(decimalSize)
           .fillColor("#545454") // <-- Asegúrate que el color sea visible
           .text(decimalPart, precioStartX + integerWidth, precioY, {
+            // Dibuja "50"
             lineBreak: false,
           });
       });
