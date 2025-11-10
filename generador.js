@@ -66,36 +66,36 @@ function normalizeUnitsInName(name) {
 
 // --- Limpia y formatea el precio (VERSIÓN CORREGIDA) ---
 function formatPrice(value) {
-  if (value == null) return '';
+  if (value == null) return "";
 
-  let str = String(value).trim();
+  let str = String(value).trim();
 
-  // 1. Limpiar (quitar símbolos, etc.)
-  str = str.replace(/[^\d,.\-]/g, '');
+  // 1. Limpiar (quitar símbolos, etc.)
+  str = str.replace(/[^\d,.\-]/g, "");
 
-  // 2. Normalizar a formato "1307.96" (sin miles, con punto decimal)
-  str = str.replace(/\.(?=\d{3}(?:[.,]|$))/g, ''); // Eliminar puntos de miles
-  str = str.replace(',', '.'); // Convertir coma decimal a punto
+  // 2. Normalizar a formato "1307.96" (sin miles, con punto decimal)
+  str = str.replace(/\.(?=\d{3}(?:[.,]|$))/g, ""); // Eliminar puntos de miles
+  str = str.replace(",", "."); // Convertir coma decimal a punto
 
-  const num = parseFloat(str);
-  if (isNaN(num)) return '';
+  const num = parseFloat(str);
+  if (isNaN(num)) return "";
 
-  // 3. Formatear manualmente a "es-ES" (1.307,96)
-  
-  // Primero, fijar 2 decimales
-  const fixedStr = num.toFixed(2); // "1307.96"
+  // 3. Formatear manualmente a "es-ES" (1.307,96)
 
-  // Separar parte entera y decimal
-  const parts = fixedStr.split('.'); // ["1307", "96"]
-  let integerPart = parts[0];
-  const decimalPart = parts[1];
+  // Primero, fijar 2 decimales
+  const fixedStr = num.toFixed(2); // "1307.96"
 
-  // Añadir puntos de miles a la parte entera
-  // Usa una Regex para insertar un "." cada 3 dígitos desde la derecha
-  integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // "1.307"
+  // Separar parte entera y decimal
+  const parts = fixedStr.split("."); // ["1307", "96"]
+  let integerPart = parts[0];
+  const decimalPart = parts[1];
 
-  // Unir con coma
-  return integerPart + ',' + decimalPart; // "1.307,96"
+  // Añadir puntos de miles a la parte entera
+  // Usa una Regex para insertar un "." cada 3 dígitos desde la derecha
+  integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, "."); // "1.307"
+
+  // Unir con coma
+  return integerPart + "," + decimalPart; // "1.307,96"
 }
 
 async function main() {
@@ -237,15 +237,12 @@ function generatePdf(data, outputPdf, marcoFile) {
         let integerPart = fullPrice;
         let decimalPart = "";
 
-        // --- ¡CAMBIOS AQUÍ! ---
-        // Buscamos la coma (,) en lugar del punto (.)
         if (fullPrice.includes(",")) {
           const parts = fullPrice.split(","); // Dividir por coma
           integerPart = parts[0] + ","; // "BS 1.000,"
           decimalPart =
             parts[1].length > 2 ? parts[1].substring(0, 2) : parts[1]; // "50"
         }
-        // --- FIN DE CAMBIOS ---
 
         // 3. Calcular tamaño de PRECIO (Solo parte entera, Arial-Bold, 28pt max)
         let precioSize = 28,
@@ -277,24 +274,15 @@ function generatePdf(data, outputPdf, marcoFile) {
         const integerWidth = doc.widthOfString(integerPart);
         doc.font("Arial-Bold").fontSize(decimalSize);
         const decimalWidth = doc.widthOfString(decimalPart); // decimalPart ahora es "50"
-        const totalPrecioWidth = integerWidth + decimalWidth; // 5. Centrar Verticalmente
+        const totalPrecioWidth = integerWidth + decimalWidth;
 
-        const totalHeight = productoHeight + spacing + precioHeight;
-        const ty = y + (CARD.height - totalHeight) / 2;
+        // --- INICIO DE CAMBIOS DE ORDEN ---
 
-        // 6. DIBUJAR PRODUCTO (Centrado en el área de texto)
-        doc
-          .font("Arial")
-          .fontSize(productoSize)
-          .fillColor("#545454") // <-- Asegúrate que el color sea visible
-          .text(item.product, tx, ty, {
-            width: tw,
-            align: "center",
-            lineGap: -1,
-          });
+        // 5. Centrar Verticalmente (Calculando con PRECIO primero)
+        const totalHeight = precioHeight + spacing + productoHeight;
+        const ty = y + (CARD.height - totalHeight) / 2; // 'ty' es el Y del PRECIO
 
-        // 7. DIBUJAR PRECIO (Centrado manual de las dos partes)
-        const precioY = ty + productoHeight + spacing;
+        // 6. DIBUJAR PRECIO (Centrado manual de las dos partes)
         // Calcular el 'X' inicial para centrar ambas partes juntas
         const precioStartX = tx + (tw - totalPrecioWidth) / 2;
 
@@ -302,8 +290,9 @@ function generatePdf(data, outputPdf, marcoFile) {
         doc
           .font("Arial-Bold")
           .fontSize(precioSize)
-          .fillColor("#705cddff") // <-- Asegúrate que el color sea visible
-          .text(integerPart, precioStartX, precioY, {
+          .fillColor("#5F66CE") // <-- Tu color
+          .text(integerPart, precioStartX, ty, {
+            // Dibuja en 'ty'
             // Dibuja "BS 1.000,"
             lineBreak: false,
             lineGap: -1,
@@ -313,11 +302,28 @@ function generatePdf(data, outputPdf, marcoFile) {
         doc
           .font("Arial-Bold")
           .fontSize(decimalSize)
-          .fillColor("#705cddff") // <-- Asegúrate que el color sea visible
-          .text(decimalPart, precioStartX + integerWidth, precioY, {
+          .fillColor("#5F66CE") // <-- Tu color
+          .text(decimalPart, precioStartX + integerWidth, ty, {
+            // Dibuja en 'ty'
             // Dibuja "50"
             lineBreak: false,
           });
+
+        // 7. DIBUJAR PRODUCTO (Centrado en el área de texto)
+        const productoY = ty + precioHeight + spacing; // Y del producto, debajo del precio
+
+        doc
+          .font("Arial")
+          .fontSize(productoSize)
+          .fillColor("#545454") // <-- Tu color
+          .text(item.product, tx, productoY, {
+            // Dibuja en 'productoY'
+            width: tw,
+            align: "center",
+            lineGap: -1,
+          });
+
+        // --- FIN DE CAMBIOS DE ORDEN ---
       });
       // líneas de recorte
       doc.save().lineWidth(0.5).strokeColor("#999").dash(5, { space: 5 });
