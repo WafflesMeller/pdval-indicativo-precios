@@ -4,12 +4,12 @@
  * Generador de precedencias - generador.js
  *
  * Este script:
- *   1) Lee un archivo Excel (.xlsx/.xls) con columnas “nombre” y “cargo”.
- *   2) Genera un PDF con tarjetas formateadas utilizando PDFKit y fuentes Arial.
- *   3) Añade líneas de recorte entre filas y columnas que sobresalgan del borde.
+ * 1) Lee un archivo Excel (.xlsx/.xls) con columnas “nombre” y “cargo”.
+ * 2) Genera un PDF con tarjetas formateadas utilizando PDFKit y fuentes Arial.
+ * 3) Añade líneas de recorte entre filas y columnas que sobresalgan del borde.
  *
  * Uso:
- *   node generador.js <input.xlsx> <logo.png> <output.pdf>
+ * node generador.js <input.xlsx> <logo.png> <output.pdf>
  */
 
 const fs = require("fs");
@@ -27,6 +27,67 @@ const CARD = {
   margin: 15,
   topPadding: 15,
 };
+
+// --- Limpia unidades dentro del nombre del producto ---
+function normalizeUnitsInName(name) {
+  if (!name) return name;
+
+  const units = ["GR", "KG", "LT", "ML"];
+  const re = new RegExp(
+    "(\\d{1,3}(?:[.,]\\d{3})*(?:[.,]\\d+)?)\\s*(" + units.join("|") + ")\\b",
+    "gi"
+  );
+
+  return String(name).replace(re, (match, numStr, unit) => {
+    let tmp = numStr;
+
+    // Normaliza separadores (maneja "1.000,50", "1000.00", "1,5")
+    if (/\.\d{3},/.test(tmp)) {
+      tmp = tmp.replace(/\./g, "").replace(/,/g, ".");
+    } else {
+      tmp = tmp.replace(/\.(?=\d{3}(?:[.,]|$))/g, "");
+      tmp = tmp.replace(",", ".");
+    }
+
+    const num = parseFloat(tmp);
+    if (isNaN(num)) return match;
+
+    // Si es entero, quita decimales; si tiene decimales, máx. 2
+    let formatted;
+    if (Math.round(num * 100) % 100 === 0) {
+      formatted = String(Math.round(num));
+    } else {
+      formatted = (Math.round(num * 100) / 100).toString().replace(/\.?0+$/, "");
+    }
+
+    return formatted + unit.toUpperCase();
+  });
+}
+
+// --- Limpia y formatea el precio ---
+function formatPrice(value) {
+  if (value == null) return "";
+
+  let str = String(value).trim();
+
+  // Quitar símbolos de moneda o letras
+  str = str.replace(/[^\d,.\-]/g, "");
+
+  // Eliminar puntos de miles, dejar coma como decimal
+  str = str.replace(/\.(?=\d{3}(?:[.,]|$))/g, "");
+  str = str.replace(",", ".");
+
+  const num = parseFloat(str);
+  if (isNaN(num)) return "";
+
+  // Formato latino: miles con punto, decimales con coma, siempre 2 decimales
+  const formatted = num.toLocaleString("es-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  return formatted;
+}
 
 async function main() {
   const [, , inputFile, marcoFile, outputPdf] = process.argv;
@@ -58,43 +119,15 @@ async function main() {
     }
   }
 
-  // Normalizar datos
+  // --- Construcción del array final ---
   const data = rows.map((r) => {
-    const name = String(r[productoKey] || "").toUpperCase();
+    const rawName = String(r[productoKey] || "");
+    const cleanedName = normalizeUnitsInName(rawName).toUpperCase();
 
-    // 🔹 Función para limpiar y formatear el precio
-    function formatPrice(value) {
-      if (value == null) return "";
-
-      let str = String(value).trim();
-
-      // 1️⃣ Eliminar cualquier símbolo de moneda o espacio extra
-      str = str.replace(/[^\d,.\-]/g, "");
-
-      // 2️⃣ Detectar el formato y normalizar:
-      // - Eliminar puntos que parecen separadores de miles
-      // - Convertir coma en punto decimal
-      //   Ej: "1.000,50" -> "1000.50", "1,000.50" -> "1000.50"
-      str = str.replace(/\.(?=\d{3}(?:[.,]|$))/g, ""); // borra puntos de miles
-      str = str.replace(",", "."); // cambia coma a punto decimal
-
-      const num = parseFloat(str);
-      if (isNaN(num)) return "";
-
-      // 3️⃣ Formatear con separador de miles "." y decimales ","
-      const formatted = num.toLocaleString("es-ES", {
-        minimumFractionDigits: 2, // siempre 2 decimales
-        maximumFractionDigits: 2,
-      });
-
-      return formatted;
-    }
-
-    // 🔹 Aplicar limpieza del precio
     const cleanedPrice = formatPrice(r[precioKey]);
 
     return {
-      product: name,
+      product: cleanedName,
       price: `BS ${cleanedPrice}`,
     };
   });
@@ -193,6 +226,10 @@ function generatePdf(data, outputPdf, marcoFile) {
         let fullPrice = item.price;
         let integerPart = fullPrice;
         let decimalPart = "";
+        
+        // NOTA: Esta lógica asume un punto como separador decimal para el split,
+        // pero formatPrice() usa comas (formato es-ES).
+        // Se mantiene la lógica original del split por si acaso.
         if (fullPrice.includes(".")) {
           const parts = fullPrice.split(".");
           integerPart = parts[0] + "."; // "BS 123."
