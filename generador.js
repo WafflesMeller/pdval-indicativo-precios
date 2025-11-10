@@ -64,29 +64,38 @@ function normalizeUnitsInName(name) {
   });
 }
 
-// --- Limpia y formatea el precio ---
+// --- Limpia y formatea el precio (VERSIÓN CORREGIDA) ---
 function formatPrice(value) {
-  if (value == null) return "";
+  if (value == null) return '';
 
-  let str = String(value).trim();
+  let str = String(value).trim();
 
-  // Quitar símbolos de moneda o letras
-  str = str.replace(/[^\d,.\-]/g, "");
+  // 1. Limpiar (quitar símbolos, etc.)
+  str = str.replace(/[^\d,.\-]/g, '');
 
-  // Eliminar puntos de miles, dejar coma como decimal
-  str = str.replace(/\.(?=\d{3}(?:[.,]|$))/g, "");
-  str = str.replace(",", ".");
+  // 2. Normalizar a formato "1307.96" (sin miles, con punto decimal)
+  str = str.replace(/\.(?=\d{3}(?:[.,]|$))/g, ''); // Eliminar puntos de miles
+  str = str.replace(',', '.'); // Convertir coma decimal a punto
 
-  const num = parseFloat(str);
-  if (isNaN(num)) return "";
+  const num = parseFloat(str);
+  if (isNaN(num)) return '';
 
-  // Formato latino: miles con punto, decimales con coma, siempre 2 decimales
-  const formatted = num.toLocaleString("es-ES", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  // 3. Formatear manualmente a "es-ES" (1.307,96)
+  
+  // Primero, fijar 2 decimales
+  const fixedStr = num.toFixed(2); // "1307.96"
 
-  return formatted;
+  // Separar parte entera y decimal
+  const parts = fixedStr.split('.'); // ["1307", "96"]
+  let integerPart = parts[0];
+  const decimalPart = parts[1];
+
+  // Añadir puntos de miles a la parte entera
+  // Usa una Regex para insertar un "." cada 3 dígitos desde la derecha
+  integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // "1.307"
+
+  // Unir con coma
+  return integerPart + ',' + decimalPart; // "1.307,96"
 }
 
 async function main() {
@@ -263,7 +272,7 @@ function generatePdf(data, outputPdf, marcoFile) {
         });
 
         // 4. Calcular tamaño y ancho de los decimales
-        const decimalSize = Math.max(8, precioSize - 4); // 4pt más pequeño que el precio
+        const decimalSize = Math.max(8, precioSize - 6); // 6pt más pequeño que el precio
         doc.font("Arial-Bold").fontSize(precioSize);
         const integerWidth = doc.widthOfString(integerPart);
         doc.font("Arial-Bold").fontSize(decimalSize);
@@ -293,7 +302,7 @@ function generatePdf(data, outputPdf, marcoFile) {
         doc
           .font("Arial-Bold")
           .fontSize(precioSize)
-          .fillColor("#545454") // <-- Asegúrate que el color sea visible
+          .fillColor("#705cddff") // <-- Asegúrate que el color sea visible
           .text(integerPart, precioStartX, precioY, {
             // Dibuja "BS 1.000,"
             lineBreak: false,
@@ -304,7 +313,7 @@ function generatePdf(data, outputPdf, marcoFile) {
         doc
           .font("Arial-Bold")
           .fontSize(decimalSize)
-          .fillColor("#545454") // <-- Asegúrate que el color sea visible
+          .fillColor("#705cddff") // <-- Asegúrate que el color sea visible
           .text(decimalPart, precioStartX + integerWidth, precioY, {
             // Dibuja "50"
             lineBreak: false,
