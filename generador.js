@@ -226,7 +226,7 @@ function generatePdf(data, outputPdf, marcoFile) {
         doc
           .font("Arial-Bold")
           .fontSize(precioSize)
-          .fillColor("#5F66CE")
+          .fillColor("#545454")
           .text(integerPart, precioStartX, ty, {
             lineBreak: false,
             lineGap: -1,
@@ -235,7 +235,7 @@ function generatePdf(data, outputPdf, marcoFile) {
         doc
           .font("Arial-Bold")
           .fontSize(decimalSize)
-          .fillColor("#5F66CE")
+          .fillColor("#545454")
           .text(decimalPart, precioStartX + integerWidth, ty, {
             lineBreak: false,
           });
